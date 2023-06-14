@@ -34,7 +34,7 @@ downsample_seurat <- function(seurat_obj, metadata_slot, target_cells) {
 }
 #' refine_metadata_levels: removes unused metadata levels from a Seurat object,
 #' useful for removing unused levels from the metadata after subsetting. Credit to
-#' gihub user michael-kotliar for this function 
+#' github user michael-kotliar for this function 
 #' (https://github.com/satijalab/seurat/issues/5069#issuecomment-1372599846).
 #' 
 #' @param seurat_obj A Seurat object
