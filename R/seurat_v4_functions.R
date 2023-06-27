@@ -13,25 +13,34 @@ NULL
 #' 
 downsample_seurat <- function(seurat_obj, metadata_slot, target_cells) {
   # Get the unique sample IDs from the metadata
-  ids <- unique(seurat_obj@meta.data[[metadata_slot]])
-  cells_to_keep <- c()
-  for (sam in ids) {
+  ids <- as.character(unique(seurat_obj@meta.data[[metadata_slot]]))
+  
+  # Define a helper function to downsample cells for a given sample
+  downsample_cells <- function(sam) {
     # Get the cells for this sample
     cells <- Cells(seurat_obj)[which(seurat_obj[[metadata_slot]] == sam)]
     if (length(cells) > target_cells) {
       # If there are more cells than the target, downsample
       keep_cells <- sample(cells, target_cells)
-      cells_to_keep <- c(cells_to_keep, keep_cells)
     } else {
       # If there are fewer cells than the target, keep all
-      cells_to_keep <- c(cells_to_keep, cells)
+      keep_cells <- cells
     }
+    return(keep_cells)
   }
+  
+  # Use lapply to iterate over sample IDs and downsample cells
+  cells_to_keep <- unlist(lapply(ids, downsample_cells))
+  
+  # Subset the seurat_obj using the cells to keep
   seurat_obj <- subset(seurat_obj, cells = cells_to_keep)
+  
   print("Downsampled Seurat object to minimum number of cells per sample, cells per sample:")
   print(table(seurat_obj@meta.data[[metadata_slot]]))
+  
   return(seurat_obj)
 }
+
 #' refine_metadata_levels: removes unused metadata levels from a Seurat object,
 #' useful for removing unused levels from the metadata after subsetting. Credit to
 #' github user michael-kotliar for this function 

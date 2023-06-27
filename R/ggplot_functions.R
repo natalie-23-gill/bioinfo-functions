@@ -25,6 +25,7 @@ multipage_plot <- function(plot_list, per_page, filename,ncol=2) {
   # Plot the plots on each page
   for (i in seq_len(num_pages)) {
     if (length(plot_indices[[i]]) < per_page) {
+      # Fill in the rest of the last page with blank plots
       this_index <- max(plot_indices[[i]])
       for (j in seq_len(per_page - length(plot_indices[[i]]))) {
         this_index <- this_index + 1
