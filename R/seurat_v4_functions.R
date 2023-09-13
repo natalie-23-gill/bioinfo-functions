@@ -70,3 +70,81 @@ refine_metadata_levels <- function(seurat_data){
     }
     return (seurat_data)
 }
+
+#' plot_metadata: Plots all of the categorical metadata in grouped
+#' and split UMAPs, autosizes based on the number of unique values
+#' in the metadata. Plots are output as PDFs to a directory.
+#' 
+#' @param seurat_obj A Seurat object
+#' @param output_dir Output directory
+#' @return Writes out plots to directory
+#' 
+#' @export
+#' 
+plot_metadata <- function(seurat_obj, output_dir) {
+  ## Plots all of the categorical metadata in grouped and split UMAPs,
+  ## autosizes based on the number of unique values in the metadata
+
+  # get the metadata columns that not numeric
+  meta_cols <- names(seurat_obj@meta.data)[!sapply(seurat_obj@meta.data, is.numeric)]
+  # Exclude "orig.ident"
+  meta_cols <- meta_cols[meta_cols != "orig.ident"]
+  for (meta in meta_cols) {
+    print(paste0("***** Plotting ", meta, " *****"))
+    pdf(file.path(paste0(output_dir, "/", meta, "_UMAP.pdf")),
+      width = 10,
+      height = 10
+    )
+    print(DimPlot(seurat_obj,
+      raster = FALSE,
+      order = TRUE,
+      label = FALSE,
+      group.by = meta
+    ))
+    dev.off()
+    h <- ifelse(length(unique(seurat_obj@meta.data[[meta]])) == 2,
+      10,
+      3 * ceiling(length(unique(seurat_obj@meta.data[[meta]])) / 2)
+    )
+    pdf(file.path(paste0(output_dir, "/", meta, "_split_UMAP.pdf")),
+      width = 15,
+      height = h
+    )
+    print(DimPlot(seurat_obj,
+      raster = FALSE,
+      order = TRUE,
+      label = FALSE,
+      group.by = meta,
+      split.by = meta,
+      ncol = 2
+    ) + NoLegend())
+    dev.off()
+  }
+}
+#' plot_metadata_numeric: Plots all of the numeric metadata
+#' using feature plot UMAPs. Plots are output as PDFs to a 
+#' directory.
+#' 
+#' @param seurat_obj A Seurat object
+#' @param output_dir Output directory
+#' @return Writes out plots to directory
+#' 
+#' @export
+#' 
+plot_metadata_numeric <- function(seurat_obj, output_dir) {
+  # Plot UMAPs for all numeric metadata columns
+  nonchar_cols <- names(seurat_obj@meta.data)[sapply(seurat_obj@meta.data, is.numeric)]
+  for (meta in nonchar_cols) {
+    print(paste0("***** Plotting ", meta, " *****"))
+    pdf(file.path(paste0(output_dir, "/", meta, "_UMAP.pdf")),
+      width = 10,
+      height = 10
+    )
+    print(FeaturePlot(seurat_obj,
+      features = meta,
+      raster = FALSE,
+      order = TRUE
+    ))
+    dev.off()
+  }
+}

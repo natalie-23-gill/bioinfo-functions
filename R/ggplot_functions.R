@@ -13,7 +13,7 @@ NULL
 #' 
 #' @export
 #' 
-multipage_plot <- function(plot_list, per_page, filename,ncol=2) {
+multipage_plot <- function(plot_list, per_page, filename, ncol=2) {
   # Create a PDF file to save the plots
   pdf(file = filename, height = 11, width = 8.5)
 
