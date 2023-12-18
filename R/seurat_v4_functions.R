@@ -74,53 +74,57 @@ refine_metadata_levels <- function(seurat_data){
 #' plot_metadata: Plots all of the categorical metadata in grouped
 #' and split UMAPs, autosizes based on the number of unique values
 #' in the metadata. Plots are output as PDFs to a directory.
-#' 
+#'
 #' @param seurat_obj A Seurat object
 #' @param output_dir Output directory
+#' @param pt.size Point size for the UMAP plots (default is 1)
 #' @return Writes out plots to directory
-#' 
+#'
 #' @export
-#' 
-plot_metadata <- function(seurat_obj, output_dir) {
+#'
+plot_metadata <- function(seurat_obj, output_dir, pt.size = 1) {
   ## Plots all of the categorical metadata in grouped and split UMAPs,
   ## autosizes based on the number of unique values in the metadata
 
-  # get the metadata columns that not numeric
+  # get the metadata columns that are not numeric
   meta_cols <- names(seurat_obj@meta.data)[!sapply(seurat_obj@meta.data, is.numeric)]
   # Exclude "orig.ident"
   meta_cols <- meta_cols[meta_cols != "orig.ident"]
   for (meta in meta_cols) {
     print(paste0("***** Plotting ", meta, " *****"))
     pdf(file.path(paste0(output_dir, "/", meta, "_UMAP.pdf")),
-      width = 10,
-      height = 10
+        width = 10,
+        height = 10
     )
     print(DimPlot(seurat_obj,
-      raster = FALSE,
-      order = TRUE,
-      label = FALSE,
-      group.by = meta
+                  raster = FALSE,
+                  order = TRUE,
+                  label = FALSE,
+                  group.by = meta,
+                  pt.size = pt.size  # Set point size here
     ))
     dev.off()
     h <- ifelse(length(unique(seurat_obj@meta.data[[meta]])) == 2,
-      10,
-      3 * ceiling(length(unique(seurat_obj@meta.data[[meta]])) / 2)
+                10,
+                3 * ceiling(length(unique(seurat_obj@meta.data[[meta]])) / 2)
     )
     pdf(file.path(paste0(output_dir, "/", meta, "_split_UMAP.pdf")),
-      width = 15,
-      height = h
+        width = 15,
+        height = h
     )
     print(DimPlot(seurat_obj,
-      raster = FALSE,
-      order = TRUE,
-      label = FALSE,
-      group.by = meta,
-      split.by = meta,
-      ncol = 2
+                  raster = FALSE,
+                  order = TRUE,
+                  label = FALSE,
+                  group.by = meta,
+                  split.by = meta,
+                  ncol = 2,
+                  pt.size = pt.size  # Set point size here
     ) + NoLegend())
     dev.off()
   }
 }
+
 #' plot_metadata_numeric: Plots all of the numeric metadata
 #' using feature plot UMAPs. Plots are output as PDFs to a 
 #' directory.
