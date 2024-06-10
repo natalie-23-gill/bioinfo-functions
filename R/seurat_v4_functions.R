@@ -78,48 +78,59 @@ refine_metadata_levels <- function(seurat_data){
 #' @param seurat_obj A Seurat object
 #' @param output_dir Output directory
 #' @param pt.size Point size for the UMAP plots (default is 1)
+#' @param plot_only A character vector of metadata columns to plot
 #' @return Writes out plots to directory
 #'
 #' @export
 #'
-plot_metadata <- function(seurat_obj, output_dir, pt.size = 1) {
+plot_metadata <- function(seurat_obj,
+                          output_dir,
+                          pt.size = 1,
+                          plot_only = NULL) {
   ## Plots all of the categorical metadata in grouped and split UMAPs,
   ## autosizes based on the number of unique values in the metadata
-
+  if (!(dir.exists(output_dir))) {
+    dir.create(output_dir, recursive = T)
+  }
   # get the metadata columns that are not numeric
   meta_cols <- names(seurat_obj@meta.data)[!sapply(seurat_obj@meta.data, is.numeric)]
   # Exclude "orig.ident"
   meta_cols <- meta_cols[meta_cols != "orig.ident"]
+
+  # If plot_only is specified, limit the meta_cols to those specified
+  if (!is.null(plot_only)) {
+    meta_cols <- intersect(meta_cols, plot_only)
+  }
   for (meta in meta_cols) {
     print(paste0("***** Plotting ", meta, " *****"))
     pdf(file.path(paste0(output_dir, "/", meta, "_UMAP.pdf")),
-        width = 10,
-        height = 10
+      width = 10,
+      height = 10
     )
     print(DimPlot(seurat_obj,
-                  raster = FALSE,
-                  order = TRUE,
-                  label = FALSE,
-                  group.by = meta,
-                  pt.size = pt.size  # Set point size here
-    ))
+      raster = FALSE,
+      order = TRUE,
+      label = FALSE,
+      group.by = meta,
+      pt.size = pt.size
+    )) + coord_fixed()
     dev.off()
     h <- ifelse(length(unique(seurat_obj@meta.data[[meta]])) == 2,
-                10,
-                3 * ceiling(length(unique(seurat_obj@meta.data[[meta]])) / 2)
+      10,
+      3 * ceiling(length(unique(seurat_obj@meta.data[[meta]])) / 2)
     )
     pdf(file.path(paste0(output_dir, "/", meta, "_split_UMAP.pdf")),
-        width = 15,
-        height = h
+      width = 15,
+      height = h
     )
     print(DimPlot(seurat_obj,
-                  raster = FALSE,
-                  order = TRUE,
-                  label = FALSE,
-                  group.by = meta,
-                  split.by = meta,
-                  ncol = 2,
-                  pt.size = pt.size  # Set point size here
+      raster = FALSE,
+      order = TRUE,
+      label = FALSE,
+      group.by = meta,
+      split.by = meta,
+      ncol = 2,
+      pt.size = pt.size # Set point size here
     ) + NoLegend())
     dev.off()
   }
