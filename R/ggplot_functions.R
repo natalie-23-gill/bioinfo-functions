@@ -9,13 +9,20 @@ NULL
 #' @param per_page the number of plots per page
 #' @param filename the name of the output file
 #' @param ncol the number of columns per page
+#' @param page_width the width of the page (default = 8.5 inches)
+#' @param page_height the height of the page (default = 11 inches)
 #' @return a multipage PDF of the plots written to the filename specified
 #' 
 #' @export
 #' 
-multipage_plot <- function(plot_list, per_page, filename, ncol=2) {
+multipage_plot <- function(plot_list,
+                           per_page,
+                           filename,
+                           ncol = 2,
+                           page_width = 8.5,
+                           page_height = 11) {
   # Create a PDF file to save the plots
-  pdf(file = filename, height = 11, width = 8.5)
+  pdf(file = filename, height = page_height, width = page_width)
   
   # Split the plots into groups of per_page per page
   num_plots <- length(plot_list)
