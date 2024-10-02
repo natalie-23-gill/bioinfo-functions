@@ -73,7 +73,8 @@ refine_metadata_levels <- function(seurat_data){
 
 #' plot_metadata: Plots all of the categorical metadata in grouped
 #' and split UMAPs, autosizes based on the number of unique values
-#' in the metadata. Plots are output as PDFs to a directory.
+#' in the metadata. Plots are output as PDFs to a directory. Does not
+#' work with coord_fixed() so not suitable for final publication plots.
 #'
 #' @param seurat_obj A Seurat object
 #' @param output_dir Output directory
@@ -113,7 +114,7 @@ plot_metadata <- function(seurat_obj,
       label = FALSE,
       group.by = meta,
       pt.size = pt.size
-    )) + coord_fixed()
+    )) 
     dev.off()
     h <- ifelse(length(unique(seurat_obj@meta.data[[meta]])) == 2,
       10,
@@ -162,4 +163,70 @@ plot_metadata_numeric <- function(seurat_obj, output_dir) {
     ))
     dev.off()
   }
+}
+
+#' Convert a Seurat object to BPCells on-disk format
+#'
+#' Converts the counts matrix of specified assays in a Seurat object to BPCells
+#' format, saving the matrices on disk and updating the Seurat object to use
+#' these on-disk matrices. Only works for single count layers.
+#'
+#' @param seurat_obj A Seurat object to be converted.
+#' @param output_dir Directory where the BPCells matrices will be saved. Defaults
+#' to a subdirectory in the system's temporary directory named after the Seurat object.
+#' @param assays Character vector of assays to convert. Defaults to "RNA".
+#' @return The updated Seurat object using on-disk matrices.
+#' @export
+#' @examples
+#' \dontrun{
+#' # Example usage
+#' seurat_obj <- readRDS("/path/to/your/seurat_object.rds")
+#' seurat_obj <- convert_seurat_to_bpcells(seurat_obj)
+#' }
+convert_seurat_to_bpcells <- function(seurat_obj, output_dir = NULL,
+                                      assays = "RNA") {
+  # Derive the name of the seurat object
+  obj_name <- deparse(substitute(seurat_obj))
+  
+  # Set default output directory to TMPDIR using the object's name
+  if (is.null(output_dir)) {
+    output_dir <- file.path(tempdir(), obj_name)
+  }
+  
+  # Ensure the output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  # Iterate over each specified assay in the Seurat object
+  for (assay_name in assays) {
+    if (!assay_name %in% names(seurat_obj@assays)) {
+      warning(paste(
+        "Assay", assay_name,
+        "not found in the Seurat object. Skipping."
+      ))
+      next
+    }
+    
+    # Convert to v5 assay
+    seurat_obj[[assay_name]] <- as(object = seurat_obj[[assay_name]], Class = "Assay5")
+    # Check if the counts matrix is already in BPCells format to avoid reprocessing
+    if (inherits(seurat_obj[[assay_name]]@layers$counts, "BPMatrix")) {
+      message(paste(
+        "Counts matrix for assay",
+        assay_name, "is already in BPCells format. Skipping."
+      ))
+      next
+    }
+    
+    # Write counts matrix to BPCells format
+    counts_dir <- file.path(output_dir, paste0(assay_name, "_counts"))
+    BPCells::write_matrix_dir(mat = seurat_obj[[assay_name]]@layers$counts, dir = counts_dir)
+    
+    # Update the counts matrix to on-disk BPCells matrix
+    seurat_obj[[assay_name]]@layers$counts<- BPCells::open_matrix_dir(dir = counts_dir)
+  }
+  
+  # Return the updated Seurat object
+  return(seurat_obj)
 }
