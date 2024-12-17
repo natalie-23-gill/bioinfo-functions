@@ -35,8 +35,8 @@ downsample_seurat <- function(seurat_obj, metadata_slot, target_cells) {
   # Subset the seurat_obj using the cells to keep
   seurat_obj <- subset(seurat_obj, cells = cells_to_keep)
   
-  print("Downsampled Seurat object to minimum number of cells per sample, cells per sample:")
-  print(table(seurat_obj@meta.data[[metadata_slot]]))
+  message("Downsampled Seurat object to minimum number of cells per sample, cells per sample:")
+  message(table(seurat_obj@meta.data[[metadata_slot]]))
   
   return(seurat_obj)
 }
@@ -54,14 +54,14 @@ downsample_seurat <- function(seurat_obj, metadata_slot, target_cells) {
 refine_metadata_levels <- function(seurat_data){
     for (i in base::colnames(seurat_data@meta.data)){
         if (base::is.factor(seurat_data@meta.data[[i]])){
-            base::print(base::paste("Re-evaluating levels for a factor column", i))
-            base::print(
+            base::message(base::paste("Re-evaluating levels for a factor column", i))
+            base::message(
                 base::paste(
                     "before:", base::paste(base::levels(seurat_data@meta.data[[i]]), collapse=", ")
                 )
             )
             seurat_data@meta.data[[i]] <- base::droplevels(seurat_data@meta.data[[i]])  # need to drop levels of the removed values
-            base::print(
+            base::message(
                 base::paste(
                     "after:", base::paste(base::levels(seurat_data@meta.data[[i]]), collapse=", ")
                 )
@@ -103,7 +103,7 @@ plot_metadata <- function(seurat_obj,
     meta_cols <- intersect(meta_cols, plot_only)
   }
   for (meta in meta_cols) {
-    print(paste0("***** Plotting ", meta, " *****"))
+    message(paste0("***** Plotting ", meta, " *****"))
     pdf(file.path(paste0(output_dir, "/", meta, "_UMAP.pdf")),
       width = 10,
       height = 10
@@ -151,7 +151,7 @@ plot_metadata_numeric <- function(seurat_obj, output_dir) {
   # Plot UMAPs for all numeric metadata columns
   nonchar_cols <- names(seurat_obj@meta.data)[sapply(seurat_obj@meta.data, is.numeric)]
   for (meta in nonchar_cols) {
-    print(paste0("***** Plotting ", meta, " *****"))
+    message(paste0("***** Plotting ", meta, " *****"))
     pdf(file.path(paste0(output_dir, "/", meta, "_UMAP.pdf")),
       width = 10,
       height = 10
